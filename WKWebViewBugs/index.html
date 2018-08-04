@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <script type="text/javascript">
+            function postByButton() {
+                var resultLabel = document.getElementById("result");
+                resultLabel.innerText = "Sending...\n";
+                post(function(text) {
+                     resultLabel.innerText += text + "\n";
+                });
+            }
+
+            function postByApp() {
+                post(function(text) {
+                     window.webkit.messageHandlers.messageHandler.postMessage(text);
+                });
+            }
+
+            function post(handler) {
+                var resultLabel = document.getElementById("result");
+                var xhr = new XMLHttpRequest();
+                xhr.withCredentials = true;
+                xhr.onloadstart = function() {
+                    handler("[onloadstart]");
+                };
+                xhr.onprogress = function() {
+                    handler("[onprogress]");
+                };
+                xhr.onloadend = function() {
+                    handler("[onloadend]");
+                };
+                xhr.onload = function() {
+                    handler("[onload]\n" + JSON.stringify(JSON.parse(xhr.responseText), null, "  "));
+                };
+                xhr.onerror = function(error) {
+                    handler("[onerror] " + error);
+                };
+                xhr.open("POST", "https://httpbin.org/post", true);
+                xhr.setRequestHeader("Content-Type", "text/plain; charset=utf-8");
+                xhr.send();
+            }
+        </script>
+    </head>
+    <body>
+        <form>
+            <button id="button" type="button" onclick="postByButton()">POST</button>
+            <pre id="result" style="white-space: pre-wrap;"></pre>
+        </form>
+    </body>
+</html>
